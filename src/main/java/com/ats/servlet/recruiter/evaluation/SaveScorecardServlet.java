@@ -64,10 +64,10 @@ public class SaveScorecardServlet extends HttpServlet {
             scorecard.setApplication(application);
         }
 
-        scorecard.setTechnicalScore(technical);
-        scorecard.setCommunicationScore(communication);
-        scorecard.setAttitudeScore(attitude);
-        scorecard.setLanguageScore(language);
+        scorecard.setTechnicalScore(technical.intValue());
+        scorecard.setCommunicationScore(communication.intValue());
+        scorecard.setAttitudeScore(attitude.intValue());
+        scorecard.setLanguageScore(language.intValue());
         scorecard.setAverageScore(average);
         scorecard.setResult(result);
         scorecard.setComment(comment.isEmpty() ? null : comment);

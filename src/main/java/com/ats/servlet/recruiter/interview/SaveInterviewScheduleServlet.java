@@ -76,7 +76,7 @@ public class SaveInterviewScheduleServlet extends HttpServlet {
         }
 
         applicationDAO.updateStatus(application.getId(), "INTERVIEW", "Đã lên lịch phỏng vấn");
-        response.sendRedirect(request.getContextPath() + "/recruiter/interviews");
+        response.sendRedirect(request.getContextPath() + "/recruiter/pipeline");
     }
 
     private LocalDateTime parseDateTime(String value) {

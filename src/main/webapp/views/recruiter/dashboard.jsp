@@ -6,307 +6,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADMIN Dashboard | ATS System</title>
+    <title>Dashboard Nhà Tuyển Dụng - ATS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --sidebar-width: 280px;
-        }
+        :root { --primary-blue: #007bff; --bg-light: #f8fbff; --sidebar-width: 280px; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-light); color: #333; margin: 0; }
+        
+        /* Sidebar layout */
+        .admin-sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: #fff; border-right: 1px solid #eee; overflow-y: auto; z-index: 1000; display: flex; flex-direction: column; }
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid #eee; }
+        .sidebar-menu { padding: 15px 10px; list-style: none; margin: 0; flex-grow: 1; }
+        .sidebar-menu-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #999; margin: 20px 0 10px 15px; letter-spacing: 0.5px; }
+        .sidebar-link { display: flex; align-items: center; padding: 12px 15px; color: #555; text-decoration: none; font-weight: 500; border-radius: 10px; transition: 0.3s; margin-bottom: 5px; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: rgba(0, 123, 255, 0.08); color: var(--primary-blue); font-weight: 700; }
+        .sidebar-link i { margin-right: 12px; font-size: 1.2rem; }
+        
+        .admin-main { margin-left: var(--sidebar-width); min-height: 100vh; }
+        .admin-header { background: #fff; padding: 15px 30px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        
+        .admin-card { background: #fff; border: 1px solid #edf2f7; border-radius: 15px; padding: 24px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); margin-bottom: 24px; }
+        .stat-card { transition: 0.3s; text-decoration: none; display: block; color: inherit; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .vip-card-gradient { background: linear-gradient(135deg, #e0eaff 0%, #f8fbff 100%); border: 1px solid #c2d6ff; }
+        
+        /* Màu trạng thái: CLOSED Đỏ, HIDDEN Xám */
+        .badge-job { padding: 5px 12px; border-radius: 6px; font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; }
+        .bg-open { background-color: #e8f5e9 !important; color: #2e7d32 !important; }
+        .bg-closed { background-color: #ffebee !important; color: #c62828 !important; }
+        .bg-hidden { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0; }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: #f8fafc; 
-            color: #1e293b;
-            overflow-x: hidden;
-        }
-
-        /* Hiệu ứng di chuột độc lạ cho Card */
-        .stat-card {
-            border: none;
-            border-radius: 24px;
-            background: var(--glass-bg);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
-        }
-
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-            transform: rotate(45deg);
-            transition: 0.6s;
-            opacity: 0;
-        }
-
-        .stat-card:hover::after {
-            opacity: 1;
-            left: 20%;
-        }
-
-        /* Sidebar & Navigation */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            background: white;
-            border-right: 1px solid #e2e8f0;
-            padding: 2rem;
-            z-index: 1000;
-        }
-
-        .nav-custom-link {
-            display: flex;
-            align-items: center;
-            padding: 0.8rem 1.2rem;
-            margin-bottom: 0.5rem;
-            border-radius: 12px;
-            color: #64748b;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-
-        .nav-custom-link:hover, .nav-custom-link.active {
-            background: var(--primary-gradient);
-            color: white !important;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-
-        /* VIP Badge Animation */
-        .vip-status-card {
-            background: linear-gradient(45deg, #1e293b, #334155);
-            color: #fbbf24;
-            border-radius: 20px;
-            border: 1px solid rgba(251, 191, 36, 0.3);
-        }
-
-        .pulse-orange {
-            animation: pulse-orange 2s infinite;
-        }
-
-        @keyframes pulse-orange {
-            0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-        }
-
-        /* Glass Table */
-        .custom-table-container {
-            background: white;
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-        }
-
-        .main-content { margin-left: var(--sidebar-width); padding: 2rem; }
+        .btn-action { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid #eee; color: #555; transition: 0.2s; text-decoration: none; }
+        .btn-action:hover { background: #f8fbff; color: var(--primary-blue); border-color: var(--primary-blue); }
+        .logout-area { padding: 20px; border-top: 1px solid #eee; margin-top: auto; }
     </style>
 </head>
 <body>
-
-    <div class="sidebar">
-        <div class="d-flex align-items-center mb-5">
-            <i class="bi bi-rocket-takeoff-fill fs-2 text-primary me-3"></i>
-            <span class="fw-bold fs-4">ATS ADMIN</span>
+    <aside class="admin-sidebar shadow-sm">
+        <div class="sidebar-brand d-flex align-items-center">
+            <i class="bi bi-rocket-takeoff-fill text-primary me-2 fs-3"></i>
+            <span class="fw-bold fs-4 text-primary">ATS Recruiter</span>
         </div>
-        
-        <nav>
-            <a href="${pageContext.request.contextPath}/admin/dashboard" class="nav-custom-link active">
-                <i class="bi bi-grid-1x2-fill me-3"></i> Tổng quan
-            </a>
-            <a href="${pageContext.request.contextPath}/recruiter/jobs" class="nav-custom-link">
-                <i class="bi bi-briefcase-fill me-3"></i> Quản lý tin đăng
-            </a>
-            <a href="${pageContext.request.contextPath}/recruiter/pipeline" class="nav-custom-link">
-                <i class="bi bi-funnel-fill me-3"></i> Quy trình (Pipeline)
-            </a>
-            <a href="${pageContext.request.contextPath}/recruiter/candidates" class="nav-custom-link">
-                <i class="bi bi-people-fill me-3"></i> Ứng viên
-            </a>
-            <a href="${pageContext.request.contextPath}/recruiter/vip/plans" class="nav-custom-link">
-                <i class="bi bi-star-fill me-3"></i> Gói dịch vụ VIP
-            </a>
-            <hr>
-            <a href="${pageContext.request.contextPath}/recruiter/account/profile" class="nav-custom-link">
-                <i class="bi bi-person-circle me-3"></i> Hồ sơ công ty
-            </a>
-            <a href="${pageContext.request.contextPath}/auth/logout" class="nav-custom-link text-danger">
-                <i class="bi bi-box-arrow-right me-3"></i> Đăng xuất
-            </a>
-        </nav>
-    </div>
-
-    <main class="main-content">
-        <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-down">
-            <div>
-                <h2 class="fw-bold mb-1">Chào buổi tối, ${sessionScope.currentUser.fullName}! 👋</h2>
-                <p class="text-muted">Đây là những gì đang diễn ra với các tin tuyển dụng của bạn.</p>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <c:if test="${not empty activeSubscription}">
-                    <div class="vip-status-card px-4 py-2 d-flex align-items-center pulse-orange">
-                        <i class="bi bi-gem me-2"></i>
-                        <span class="fw-bold">Gói VIP: ${activeSubscription.plan.name}</span>
-                    </div>
-                </c:if>
-                <a href="${pageContext.request.contextPath}/recruiter/jobs/create" class="btn btn-primary px-4 py-2 rounded-pill shadow">
-                    <i class="bi bi-plus-lg me-2"></i> Đăng tin mới
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/dashboard" class="sidebar-link active"><i class="bi bi-grid-1x2-fill"></i> Tổng quan</a></li>
+            
+            <div class="sidebar-menu-title">Tuyển dụng</div>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/jobs/create" class="sidebar-link"><i class="bi bi-plus-circle"></i> Đăng tin mới</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/jobs" class="sidebar-link"><i class="bi bi-file-earmark-text"></i> Quản lý tin đăng</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/pipeline" class="sidebar-link"><i class="bi bi-people"></i> Danh sách ứng viên</a></li>
+            
+            <div class="sidebar-menu-title">Tài khoản & Dịch vụ</div>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/vip/plans" class="sidebar-link"><i class="bi bi-gem"></i> Gói dịch vụ VIP</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/payment/history" class="sidebar-link"><i class="bi bi-credit-card"></i> Lịch sử thanh toán</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/account/profile" class="sidebar-link"><i class="bi bi-person-gear"></i> Hồ sơ công ty</a></li>
+            
+            <div class="sidebar-menu-title">Cá nhân</div>
+            <li class="sidebar-item">
+                <a href="${pageContext.request.contextPath}/recruiter/account/change-password" class="sidebar-link">
+                    <i class="bi bi-key"></i> Đổi mật khẩu
                 </a>
-            </div>
+            </li>
+        </ul>
+        <div class="logout-area">
+            <a href="${pageContext.request.contextPath}/auth/logout" class="sidebar-link text-danger bg-danger bg-opacity-10 py-2">
+                <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+            </a>
         </div>
+    </aside>
 
-        <div class="row g-4 mb-5">
-            <div class="col-md-3" data-aos="zoom-in" data-aos-delay="100">
-                <div class="stat-card p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted small fw-bold text-uppercase mb-1">Tin đang tuyển</p>
-                            <h3 class="fw-bold mb-0">${jobs.stream().filter(j -> "OPEN".equals(j.status)).count()}</h3>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 p-3 rounded-4">
-                            <i class="bi bi-megaphone text-primary fs-4"></i>
-                        </div>
+    <main class="admin-main">
+        <header class="admin-header sticky-top shadow-sm">
+            <h5 class="fw-bold mb-0 text-dark">Chào mừng trở lại, ${currentUser.fullName}!</h5>
+            <div class="dropdown">
+                <button class="btn btn-link text-dark text-decoration-none dropdown-toggle d-flex align-items-center p-0 border-0 shadow-none" data-bs-toggle="dropdown">
+                    <div class="bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
+                        ${currentUser.fullName.substring(0,2).toUpperCase()}
                     </div>
-                </div>
+                    <span class="fw-bold">${currentUser.fullName}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/recruiter/account/profile"><i class="bi bi-person me-2"></i> Hồ sơ</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger py-2" href="${pageContext.request.contextPath}/auth/logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                </ul>
             </div>
-            <div class="col-md-3" data-aos="zoom-in" data-aos-delay="200">
-                <div class="stat-card p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted small fw-bold text-uppercase mb-1">Tổng hồ sơ</p>
-                            <h3 class="fw-bold mb-0">${totalApplications != null ? totalApplications : 0}</h3>
-                        </div>
-                        <div class="bg-success bg-opacity-10 p-3 rounded-4">
-                            <i class="bi bi-file-earmark-person text-success fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3" data-aos="zoom-in" data-aos-delay="300">
-                <div class="stat-card p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted small fw-bold text-uppercase mb-1">Chờ phỏng vấn</p>
-                            <h3 class="fw-bold mb-0">${pendingInterviews != null ? pendingInterviews : 0}</h3>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 p-3 rounded-4">
-                            <i class="bi bi-calendar-event text-warning fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3" data-aos="zoom-in" data-aos-delay="400">
-                <div class="stat-card p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted small fw-bold text-uppercase mb-1">Đã tuyển được</p>
-                            <h3 class="fw-bold mb-0">${hiredCount != null ? hiredCount : 0}</h3>
-                        </div>
-                        <div class="bg-info bg-opacity-10 p-3 rounded-4">
-                            <i class="bi bi-check-all text-info fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </header>
 
-        <div class="row g-4">
-            <div class="col-lg-8" data-aos="fade-right">
-                <div class="custom-table-container">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">Việc làm mới đăng gần đây</h5>
-                        <a href="${pageContext.request.contextPath}/recruiter/jobs" class="text-primary text-decoration-none small fw-bold">Xem tất cả</a>
+        <div class="container-fluid p-4">
+            <div class="row g-4 mb-4">
+                <a href="${pageContext.request.contextPath}/recruiter/jobs" class="col-md-3 stat-card">
+                    <div class="admin-card mb-0 h-100 d-flex align-items-center justify-content-between">
+                        <div><p class="text-muted small fw-bold text-uppercase mb-1">Tin tuyển dụng</p><h2 class="fw-bold mb-0">${jobs.size()}</h2></div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary"><i class="bi bi-briefcase fs-3"></i></div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Vị trí</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hồ sơ</th>
-                                    <th>Hạn chót</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="job" items="${jobs}" varStatus="status">
-                                    <c:if test="${status.index < 5}">
-                                        <tr>
-                                            <td>
-                                                <div class="fw-bold text-dark">${job.title}</div>
-                                                <c:if test="${job.isVip}"><span class="badge bg-warning text-dark small"><i class="bi bi-star-fill"></i> VIP</span></c:if>
-                                            </td>
-                                            <td>
-                                                <span class="badge ${job.status == 'OPEN' ? 'bg-success' : 'bg-secondary'} bg-opacity-10 ${job.status == 'OPEN' ? 'text-success' : 'text-secondary'} rounded-pill">
-                                                    ${job.status}
-                                                </span>
-                                            </td>
-                                            <td><span class="fw-bold text-primary">0</span> hồ sơ</td> <td class="small text-muted"><fmt:parseDate value="${job.deadline}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDeadline"/><fmt:formatDate value="${parsedDeadline}" pattern="dd/MM/yyyy"/></td>
-                                            <td>
-                                                <a href="${pageContext.request.contextPath}/recruiter/jobs/detail?id=${job.id}" class="btn btn-sm btn-light rounded-circle"><i class="bi bi-eye"></i></a>
-                                            </td>
-                                        </tr>
-                                    </c:if>
-                                </c:forEach>
-                            </tbody>
-                        </table>
+                </a>
+                <a href="${pageContext.request.contextPath}/recruiter/pipeline" class="col-md-3 stat-card">
+                    <div class="admin-card mb-0 h-100 d-flex align-items-center justify-content-between">
+                        <div><p class="text-muted small fw-bold text-uppercase mb-1">Tổng hồ sơ</p><h2 class="fw-bold mb-0">${totalApps}</h2></div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success"><i class="bi bi-file-earmark-person fs-3"></i></div>
+                    </div>
+                </a>
+                <div class="col-md-3">
+                    <div class="admin-card mb-0 h-100 d-flex align-items-center justify-content-between">
+                        <div><p class="text-muted small fw-bold text-uppercase mb-1">Chờ phỏng vấn</p><h2 class="fw-bold mb-0">${pendingInterviews}</h2></div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning"><i class="bi bi-calendar-event fs-3"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="admin-card mb-0 h-100 d-flex align-items-center justify-content-between">
+                        <div><p class="text-muted small fw-bold text-uppercase mb-1">Đã tuyển</p><h2 class="fw-bold mb-0">${hiredCount}</h2></div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info"><i class="bi bi-check-circle fs-3"></i></div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-4" data-aos="fade-left">
-                <div class="custom-table-container h-100">
-                    <h5 class="fw-bold mb-4">Tình trạng tài khoản</h5>
-                    <div class="text-center p-4 rounded-4 bg-light mb-4">
-                        <c:choose>
-                            <c:when test="${not empty activeSubscription}">
-                                <div class="mb-3 text-warning"><i class="bi bi-gem fs-1"></i></div>
-                                <h6 class="fw-bold">${activeSubscription.plan.name}</h6>
-                                <p class="small text-muted">Hết hạn: <fmt:parseDate value="${activeSubscription.endDate}" pattern="yyyy-MM-dd'T'HH:mm" var="pEnd"/><fmt:formatDate value="${pEnd}" pattern="dd/MM/yyyy"/></p>
-                                <div class="progress mb-3" style="height: 8px;">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 75%"></div>
-                                </div>
-                                <a href="${pageContext.request.contextPath}/recruiter/vip/plans" class="btn btn-outline-warning w-100 rounded-pill">Nâng cấp gói</a>
-                            </c:when>
-                            <c:otherwise>
-                                <div class="mb-3 text-muted"><i class="bi bi-slash-circle fs-1"></i></div>
-                                <h6 class="fw-bold">Gói Miễn phí</h6>
-                                <p class="small text-muted">Đăng ký VIP để mở khóa tính năng lọc ứng viên bằng AI.</p>
-                                <a href="${pageContext.request.contextPath}/recruiter/vip/plans" class="btn btn-primary w-100 rounded-pill">Nâng cấp ngay</a>
-                            </c:otherwise>
-                        </c:choose>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="admin-card h-100">
+                        <h5 class="fw-bold mb-4">Dịch vụ hiện tại</h5>
+                        <div class="vip-card-gradient rounded-4 p-4 mb-3 text-center">
+                            <h4 class="fw-bold text-primary mb-1"><c:out value="${activeSubscription.plan.name}" default="Basic Member"/></h4>
+                            <p class="small text-muted mb-0">Hạng: VIP</p>
+                        </div>
+                        <a href="${pageContext.request.contextPath}/recruiter/vip/plans" class="btn btn-outline-primary w-100 rounded-pill fw-bold btn-sm">Nâng cấp ngay</a>
                     </div>
-                    
-                    <h6 class="fw-bold mb-3 small text-uppercase text-muted">Thanh toán gần đây</h6>
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="bg-success bg-opacity-10 p-2 rounded-3 text-success"><i class="bi bi-arrow-up-right"></i></div>
-                        <div>
-                            <div class="fw-bold small">Thanh toán thành công</div>
-                            <div class="text-muted extra-small">23/03/2026</div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="admin-card p-0 overflow-hidden h-100">
+                        <div class="px-4 pt-4 d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Tin tuyển dụng mới nhất</h5>
+                            <a href="${pageContext.request.contextPath}/recruiter/jobs" class="btn btn-sm btn-link text-decoration-none fw-bold">Quản lý tất cả</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="text-muted small">
+                                    <tr>
+                                        <th class="ps-4">VỊ TRÍ</th>
+                                        <th>TRẠNG THÁI</th>
+                                        <th class="text-center">THAO TÁC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="job" items="${jobs}" varStatus="loop">
+                                        <c:if test="${loop.index < 5}">
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-dark">${job.title}</div>
+                                                    <small class="text-muted">${job.location}</small>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${job.status == 'OPEN' || job.status == 'active'}">
+                                                            <span class="badge-job bg-open">OPEN</span>
+                                                        </c:when>
+                                                        <c:when test="${job.status == 'CLOSED' || job.status == 'expired'}">
+                                                            <span class="badge-job bg-closed">CLOSED</span>
+                                                        </c:when>
+                                                        <c:when test="${job.status == 'HIDDEN'}">
+                                                            <span class="badge-job bg-hidden">HIDDEN</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge-job bg-secondary text-white">${job.status}</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td class="text-center">
+                                                    <a href="${pageContext.request.contextPath}/recruiter/jobs/detail?id=${job.id}" class="btn-action me-1" title="Ứng viên"><i class="bi bi-people"></i></a>
+                                                    <a href="${pageContext.request.contextPath}/recruiter/jobs/edit?id=${job.id}" class="btn-action" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        AOS.init({ duration: 800, once: true });
-    </script>
 </body>
 </html>

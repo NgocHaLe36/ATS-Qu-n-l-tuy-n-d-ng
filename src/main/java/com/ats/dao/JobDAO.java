@@ -13,6 +13,8 @@ public interface JobDAO extends BaseDAO<Job, Integer> {
     List<Job> findVipJobs();
 
     List<Job> searchJobs(String keyword, String location, String status, Boolean isVip);
+    
+    void delete(Integer id);
 
     long countByRecruiterId(Integer recruiterId);
 

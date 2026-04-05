@@ -30,7 +30,7 @@ public class RecruiterJobDetailServlet extends HttpServlet {
         Job job = jobId == null ? null : jobDAO.findById(jobId);
 
         if (job == null || job.getRecruiter() == null || !recruiter.getId().equals(job.getRecruiter().getId())) {
-            response.sendRedirect(request.getContextPath() + "/recruiter/jobs");
+            response.sendRedirect(request.getContextPath() + "/raecruiter/jobs");
             return;
         }
 

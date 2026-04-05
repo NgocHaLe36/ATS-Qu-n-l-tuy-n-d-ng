@@ -12,18 +12,20 @@ import javax.servlet.http.HttpSession;
 
 import com.ats.dao.impl.JobDAOImpl;
 import com.ats.dao.impl.SubscriptionDAOImpl;
+import com.ats.dao.impl.ApplicationDAOImpl; 
 import com.ats.entity.Job;
 import com.ats.entity.Subscription;
 import com.ats.entity.User;
 
-// Lưu ý: Đổi URL thành /recruiter/dashboard để khớp với các link trong JSP
 @WebServlet("/recruiter/dashboard")
 public class RecruiterDashboardServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
     private final JobDAOImpl jobDAO = new JobDAOImpl();
     private final SubscriptionDAOImpl subscriptionDAO = new SubscriptionDAOImpl();
+    private final ApplicationDAOImpl applicationDAO = new ApplicationDAOImpl();
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
@@ -36,29 +38,53 @@ public class RecruiterDashboardServlet extends HttpServlet {
             return;
         }
 
-        // 2. Lấy dữ liệu cho Dashboard
-        // Lấy danh sách việc làm của nhà tuyển dụng này
-        List<Job> jobs = jobDAO.findByRecruiterId(currentUser.getId());
-        
-        // Lấy thông tin gói VIP
-        Subscription activeSubscription = subscriptionDAO.findActiveByUserId(currentUser.getId());
+        // 2. Lấy ID Nhà tuyển dụng
+        Integer recruiterId = currentUser.getId();
 
-        // 3. Đưa dữ liệu vào request attribute để JSP sử dụng
-        request.setAttribute("jobs", jobs);
-        request.setAttribute("activeSubscription", activeSubscription);
-        
-        // Giả lập một số con số thống kê (Bạn có thể viết thêm DAO để count chính xác)
-        request.setAttribute("totalApplications", 0); 
-        request.setAttribute("pendingInterviews", 0);
-        request.setAttribute("hiredCount", 0);
+        try {
+            // 3. Lấy dữ liệu danh sách
+            List<Job> jobs = jobDAO.findByRecruiterId(recruiterId);
+            Subscription activeSubscription = subscriptionDAO.findActiveByUserId(recruiterId);
 
-        // 4. Forward sang file giao diện JSP của bạn
-        // Hãy đảm bảo đường dẫn bên dưới đúng với vị trí file JSP của bạn
+            // 4. LẤY CON SỐ THỐNG KÊ THỰC TẾ
+            Long totalJobs = (long) (jobs != null ? jobs.size() : 0);
+            Long totalAppsCount = applicationDAO.countByRecruiterId(recruiterId);
+            
+            // Gọi các hàm đếm trạng thái cụ thể từ DAO đã sửa lỗi @Override
+            Long pendingInterviewsCount = applicationDAO.countPendingInterviews(recruiterId);
+            Long hiredCountVal = applicationDAO.countAcceptedCandidates(recruiterId);
+
+            // 5. Đẩy dữ liệu sang JSP
+            request.setAttribute("jobs", jobs);
+            request.setAttribute("activeSubscription", activeSubscription);
+            
+            // --- SỬA TÊN BIẾN CHO KHỚP VỚI JSP CỦA BẠN ---
+            // Gửi cả 2 tên biến để đảm bảo JSP tìm thấy dữ liệu
+            request.setAttribute("totalJobs", totalJobs);
+            
+            // JSP của bạn đang gọi ${totalApplications}, mình set đúng tên đó:
+            request.setAttribute("totalApps", totalAppsCount); 
+            request.setAttribute("totalApplications", totalAppsCount); 
+            
+            request.setAttribute("pendingInterviews", pendingInterviewsCount);
+            request.setAttribute("hiredCount", hiredCountVal);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Gán mặc định bằng 0 nếu có lỗi DB
+            request.setAttribute("totalJobs", 0);
+            request.setAttribute("totalApplications", 0);
+            request.setAttribute("pendingInterviews", 0);
+            request.setAttribute("hiredCount", 0);
+        }
+
+        // 6. Chuyển hướng đến giao diện
         request.getRequestDispatcher("/views/recruiter/dashboard.jsp").forward(request, response);
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         doGet(request, response);
     }
-}
+}	

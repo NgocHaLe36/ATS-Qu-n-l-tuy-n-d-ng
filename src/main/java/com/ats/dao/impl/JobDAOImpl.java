@@ -388,6 +388,26 @@ public List<Job> findRelatedPublicJobs(Integer currentJobId, String location, in
             em.close();
         }
     }
+    
+    @Override
+    public void delete(Integer id) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            Job job = em.find(Job.class, id);
+            if (job != null) {
+                em.remove(job);
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            em.close();
+        }
+    }
 
     @Override
     public List<Job> findPublicJobsByRecruiterId(Integer recruiterId, int page, int pageSize) {
@@ -402,4 +422,5 @@ public List<Job> findRelatedPublicJobs(Integer currentJobId, String location, in
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
     }
+    
 }

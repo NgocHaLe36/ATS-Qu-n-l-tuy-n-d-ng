@@ -55,7 +55,7 @@ public class PaymentCallbackServlet extends HttpServlet {
             payment = new Payment();
             payment.setUser(subscription.getUser());
             payment.setSubscription(subscription);
-            payment.setAmount(subscription.getPlan() != null ? subscription.getPlan().getPrice() : BigDecimal.ZERO);
+            payment.setAmount(subscription.getPlan() != null ? subscription.getPlan().getPrice().intValue() : 0);
             payment.setPaymentMethod(paymentMethod.isEmpty() ? "manual" : paymentMethod);
             payment.setTransactionCode(transactionCode);
             payment.setStatus(status);
