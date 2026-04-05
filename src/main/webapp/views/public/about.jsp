@@ -34,17 +34,29 @@
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/jobs">Việc làm</a></li>
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/recruiters">Công ty</a></li>
+                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/company">Công ty</a></li>
                     <li class="nav-item"><a class="nav-link text-primary fw-bold" href="${pageContext.request.contextPath}/about">Giới thiệu</a></li>
                 </ul>
-                <div class="d-flex align-items-center">
+               <div class="d-flex align-items-center">
                     <c:choose>
-                        <c:when test="${empty sessionScope.user}">
-                            <a href="${pageContext.request.contextPath}/login" class="btn btn-link text-dark text-decoration-none me-3">Đăng nhập</a>
-                            <a href="${pageContext.request.contextPath}/register" class="btn btn-primary px-4 rounded-pill">Đăng ký ngay</a>
+                        <%-- Đã sửa thành currentUser --%>
+                        <c:when test="${not empty sessionScope.currentUser}">
+                            <div class="dropdown">
+                                <a class="btn btn-outline-primary rounded-pill px-4 dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-2"></i> ${sessionScope.currentUser.fullName}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2">
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/dashboard"><i class="bi bi-grid-fill me-2 text-muted"></i> Quản lý hồ sơ</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/applied-jobs"><i class="bi bi-briefcase-fill me-2 text-muted"></i> Việc làm đã nộp</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth/logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                                </ul>
+                            </div>
                         </c:when>
+                        <%-- Đã sửa đường dẫn thành /auth/... --%>
                         <c:otherwise>
-                            <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-outline-primary rounded-pill px-4">Dashboard</a>
+                            <a href="${pageContext.request.contextPath}/auth/login" class="btn btn-link text-dark text-decoration-none me-3">Đăng nhập</a>
+                            <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-primary px-4 rounded-pill">Đăng ký ngay</a>
                         </c:otherwise>
                     </c:choose>
                 </div>

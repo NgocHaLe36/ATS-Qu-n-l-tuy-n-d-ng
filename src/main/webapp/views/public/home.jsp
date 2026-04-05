@@ -61,17 +61,40 @@
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link text-primary fw-bold" href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/jobs">Việc làm</a></li>
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/recruiters">Công ty</a></li>
+                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/company">Công ty</a></li>
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/about">Giới thiệu</a></li>
                 </ul>
-                <div class="d-flex align-items-center">
+              <div class="d-flex align-items-center">
                     <c:choose>
-                        <c:when test="${empty sessionScope.currentUser}">
+                        <%-- Đã sửa điều kiện thành not empty để kiểm tra người dùng ĐÃ đăng nhập --%>
+                        <c:when test="${not empty sessionScope.currentUser}">
+                            <div class="dropdown">
+                                <a class="btn btn-outline-primary rounded-pill px-4 dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-2"></i> ${sessionScope.currentUser.fullName}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2">
+                                    <%-- Nếu là ứng viên --%>
+                                    <c:if test="${sessionScope.currentUser.role == 'CANDIDATE' or sessionScope.currentUser.role == 'candidate'}">
+                                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/dashboard"><i class="bi bi-grid-fill me-2 text-muted"></i> Quản lý hồ sơ</a></li>
+                                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/applied-jobs"><i class="bi bi-briefcase-fill me-2 text-muted"></i> Việc làm đã nộp</a></li>
+                                    </c:if>
+                                    
+                                    <%-- Nếu là nhà tuyển dụng (Dự phòng cho tài khoản Recruiter) --%>
+                                    <c:if test="${sessionScope.currentUser.role == 'RECRUITER' or sessionScope.currentUser.role == 'recruiter'}">
+                                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/recruiter/dashboard"><i class="bi bi-speedometer2 me-2 text-muted"></i> Bảng điều khiển HR</a></li>
+                                    </c:if>
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth/logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                                </ul>
+                            </div>
+                        </c:when>
+                        
+                        <%-- Nếu CHƯA đăng nhập --%>
+                        <c:otherwise>
                             <a href="${pageContext.request.contextPath}/auth/login" class="btn btn-link text-dark text-decoration-none me-3">Đăng nhập</a>
                             <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-primary px-4 rounded-pill">Đăng ký ngay</a>
-                        </c:when>
-                        <c:otherwise>
-<a href="${pageContext.request.contextPath}/recruiter/dashboard" class="btn btn-outline-primary rounded-pill px-4 fw-bold">Dashboard</a>                        </c:otherwise>
+                        </c:otherwise>
                     </c:choose>
                 </div>
             </div>

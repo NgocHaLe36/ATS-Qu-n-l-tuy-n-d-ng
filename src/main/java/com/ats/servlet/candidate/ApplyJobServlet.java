@@ -1,7 +1,7 @@
 package com.ats.servlet.candidate;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.LocalDate; // Đã đổi thành LocalDate
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -52,7 +52,8 @@ public class ApplyJobServlet extends HttpServlet {
             return;
         }
 
-        if (job.getDeadline() != null && job.getDeadline().isBefore(LocalDateTime.now())) {
+        // Đã sửa thành LocalDate.now()
+        if (job.getDeadline() != null && job.getDeadline().isBefore(LocalDate.now())) {
             request.getSession().setAttribute("warningMessage", "Công việc này đã hết hạn ứng tuyển.");
             response.sendRedirect(request.getContextPath() + "/job-detail?id=" + jobId);
             return;

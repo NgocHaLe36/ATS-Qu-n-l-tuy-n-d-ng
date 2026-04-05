@@ -29,10 +29,10 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("currentUser") != null) {
             User currentUser = (User) session.getAttribute("currentUser");
+            // Nếu đã đăng nhập rồi thì đá thẳng vào dashboard tương ứng
             response.sendRedirect(request.getContextPath() + getDashboardByRole(currentUser.getRole()));
             return;
         }
-
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
@@ -54,6 +54,7 @@ public class LoginServlet extends HttpServlet {
 
         User user = userDAO.findByEmailAndPassword(email, password);
 
+        // 1. Kiểm tra tài khoản có tồn tại không
         if (user == null) {
             User existingUser = userDAO.findByEmail(email);
             if (existingUser != null && Boolean.FALSE.equals(existingUser.getStatus())) {
@@ -65,27 +66,41 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        // 2. Đăng nhập thành công -> Thiết lập Session
         HttpSession session = request.getSession();
         session.setAttribute("currentUser", user);
 
-        if ("candidate".equalsIgnoreCase(user.getRole())) {
+        // 3. Xử lý logic riêng cho Candidate (nếu cần lấy thông tin profile)
+        String userRole = (user.getRole() != null) ? user.getRole().toLowerCase().trim() : "";
+        
+        if ("candidate".equals(userRole)) {
             Candidate candidate = candidateDAO.findByUserId(user.getId());
             if (candidate != null) {
                 session.setAttribute("currentCandidate", candidate);
             }
         }
 
-        response.sendRedirect(request.getContextPath() + getDashboardByRole(user.getRole()));
+        // 4. Chuyển hướng dựa trên Role
+        String redirectUrl = getDashboardByRole(userRole);
+        System.out.println("DEBUG: User " + user.getEmail() + " logged in with role: [" + userRole + "] -> Redirecting to: " + redirectUrl);
+        
+        response.sendRedirect(request.getContextPath() + redirectUrl);
     }
 
     private String getDashboardByRole(String role) {
         if (role == null) return "/";
-        switch (role.toLowerCase().trim()) {
+        
+        // Làm sạch dữ liệu role một lần nữa để tránh lỗi so sánh
+        String cleanRole = role.toLowerCase().trim();
+        
+        switch (cleanRole) {
             case "admin":
                 return "/admin/dashboard";
             case "recruiter":
                 return "/recruiter/dashboard";
             case "candidate":
+                // Nếu bạn muốn Candidate đăng nhập xong về trang chủ thay vì dashboard:
+                // return "/home"; 
                 return "/candidate/dashboard";
             default:
                 return "/";

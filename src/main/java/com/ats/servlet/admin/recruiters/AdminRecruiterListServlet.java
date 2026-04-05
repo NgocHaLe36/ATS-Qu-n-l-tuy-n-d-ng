@@ -1,4 +1,4 @@
-package com.ats.servlet.admin.candidates;
+package com.ats.servlet.admin.recruiters;
 
 import java.io.IOException;
 import java.util.List;

@@ -38,10 +38,33 @@
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
                     <li class="nav-item"><a class="nav-link text-primary fw-bold" href="${pageContext.request.contextPath}/jobs">Việc làm</a></li>
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/recruiters">Công ty</a></li>
+                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/company">Công ty</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/about">Giới thiệu</a></li>
+                    
                 </ul>
-                <div class="d-flex align-items-center"><a href="${pageContext.request.contextPath}/login" class="btn btn-link text-dark text-decoration-none me-3">Đăng nhập</a><a href="${pageContext.request.contextPath}/register" class="btn btn-primary px-4 rounded-pill">Đăng ký ngay</a></div>
+<div class="d-flex align-items-center">
+    <c:choose>
+        <%-- Nếu đã đăng nhập (có currentUser trong session) --%>
+        <c:when test="${not empty sessionScope.currentUser}">
+            <div class="dropdown">
+                <a class="btn btn-outline-primary rounded-pill px-4 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1"></i> ${sessionScope.currentUser.fullName}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/dashboard">Dashboard Ứng viên</a></li>
+                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/profile">Hồ sơ của tôi</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth/logout">Đăng xuất</a></li>
+                </ul>
             </div>
+        </c:when>
+        <%-- Nếu chưa đăng nhập --%>
+        <c:otherwise>
+            <a href="${pageContext.request.contextPath}/auth/login" class="btn btn-link text-dark text-decoration-none me-3">Đăng nhập</a>
+            <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-primary px-4 rounded-pill">Đăng ký ngay</a>
+        </c:otherwise>
+    </c:choose>
+</div>            </div>
         </div>
     </nav>
 
@@ -60,8 +83,7 @@
                     </div>
                 </div>
                 <div class="col-lg-4 ps-lg-4 mt-4 mt-lg-0 text-center text-lg-start">
-                    <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm mb-3">Ứng tuyển ngay</button>
-                    <button class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold"><i class="bi bi-heart me-2"></i>Lưu tin này</button>
+<a href="${pageContext.request.contextPath}/candidate/apply?jobId=${job.id}" class="btn btn-primary w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm mb-3 d-block">Ứng tuyển ngay</a>                    <button class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold"><i class="bi bi-heart me-2"></i>Lưu tin này</button>
                 </div>
             </div>
             <hr class="my-4 opacity-10">
