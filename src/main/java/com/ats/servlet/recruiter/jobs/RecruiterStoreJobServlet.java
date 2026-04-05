@@ -57,10 +57,11 @@ public class RecruiterStoreJobServlet extends HttpServlet {
         job.setDescription(description);
         job.setRequirement(requirement);
         job.setLocation(location);
-        job.setSalary(salary);
+     // Sửa dòng 60
+        job.setSalary(salary.intValue());
         job.setIsVip(isVip);
         job.setStatus(status.isEmpty() ? "DRAFT" : status);
-        job.setDeadline(parseDateTime(deadlineStr));
+        job.setDeadline(parseDateTime(deadlineStr).toLocalDate());
         job.setCreatedDate(LocalDateTime.now());
         job.setUpdatedDate(LocalDateTime.now());
 

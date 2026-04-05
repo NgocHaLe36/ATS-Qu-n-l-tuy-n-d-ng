@@ -95,4 +95,19 @@ public class PaymentDAOImpl extends AbstractDAO<Payment> implements PaymentDAO {
             em.close();
         }
     }
+    @Override
+    public Payment save(Payment entity) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 }

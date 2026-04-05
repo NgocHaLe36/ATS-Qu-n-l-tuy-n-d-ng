@@ -11,7 +11,7 @@ import com.ats.dao.ApplicationDAO;
 import com.ats.entity.Application;
 
 public class ApplicationDAOImpl extends AbstractDAO<Application> implements ApplicationDAO {
-
+    
     public ApplicationDAOImpl() {
         super(Application.class);
     }
@@ -132,6 +132,7 @@ public class ApplicationDAOImpl extends AbstractDAO<Application> implements Appl
             return em.merge(application);
         });
     }
+
     @Override
     public Application findByIdAndCandidateId(Integer applicationId, Integer candidateId) {
         EntityManager em = getEntityManager();
@@ -174,6 +175,77 @@ public class ApplicationDAOImpl extends AbstractDAO<Application> implements Appl
             return query.getSingleResult();
         } catch (NoResultException e) {
             return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    @Override
+    public Long countByRecruiterId(Integer recruiterId) {
+        EntityManager em = getEntityManager();
+        try {
+            String hql = "SELECT COUNT(a) FROM Application a " +
+                         "JOIN a.job j " +
+                         "WHERE j.recruiter.id = :recruiterId";
+            
+            Long result = em.createQuery(hql, Long.class)
+                            .setParameter("recruiterId", recruiterId)
+                            .getSingleResult();
+            
+            return (result != null) ? result : 0L;
+        } catch (Exception e) {
+            return 0L;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public Long countByStatusAndRecruiterId(Integer recruiterId, String status) {
+        EntityManager em = getEntityManager();
+        try {
+            String hql = "SELECT COUNT(a) FROM Application a " +
+                         "WHERE a.job.recruiter.id = :recruiterId AND a.status = :status";
+            return em.createQuery(hql, Long.class)
+                     .setParameter("recruiterId", recruiterId)
+                     .setParameter("status", status)
+                     .getSingleResult();
+        } catch (Exception e) {
+            return 0L;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public long countPendingInterviews(Integer recruiterId) {
+        EntityManager em = getEntityManager();
+        try {
+            String hql = "SELECT COUNT(a) FROM Application a " +
+                         "WHERE a.job.recruiter.id = :recruiterId AND a.status = 'INTERVIEW'";
+            Long result = em.createQuery(hql, Long.class)
+                            .setParameter("recruiterId", recruiterId)
+                            .getSingleResult();
+            return (result != null) ? result : 0L;
+        } catch (Exception e) {
+            return 0L;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public long countAcceptedCandidates(Integer recruiterId) {
+        EntityManager em = getEntityManager();
+        try {
+            String hql = "SELECT COUNT(a) FROM Application a " +
+                         "WHERE a.job.recruiter.id = :recruiterId AND a.status = 'Accepted'";
+            Long result = em.createQuery(hql, Long.class)
+                            .setParameter("recruiterId", recruiterId)
+                            .getSingleResult();
+            return (result != null) ? result : 0L;
+        } catch (Exception e) {
+            return 0L;
         } finally {
             em.close();
         }

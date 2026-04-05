@@ -1,70 +1,215 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý ứng viên</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân tích AI - ATS Recruiter</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container-fluid py-4">
-        <h3 class="mb-4">Danh sách ứng tuyển</h3>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        :root { --primary-blue: #007bff; --bg-light: #f8fbff; --sidebar-width: 280px; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-light); color: #333; margin: 0; }
         
-        <div class="card mb-4 border-0 shadow-sm">
-            <div class="card-body">
-                <form action="" method="get" class="row g-3">
-                    <div class="col-md-4">
-                        <input type="text" name="keyword" class="form-control" placeholder="Tìm tên ứng viên..." value="${keyword}">
+        /* Sidebar Styling đồng bộ Dashboard */
+        .admin-sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: #fff; border-right: 1px solid #eee; z-index: 1000; display: flex; flex-direction: column; }
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid #eee; }
+        .sidebar-brand a { text-decoration: none !important; }
+        .sidebar-menu { padding: 15px 10px; list-style: none; margin: 0; flex-grow: 1; }
+        .sidebar-menu-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #999; margin: 20px 0 10px 15px; letter-spacing: 0.5px; }
+        .sidebar-link { display: flex; align-items: center; padding: 12px 15px; color: #555; text-decoration: none; font-weight: 500; border-radius: 10px; margin: 5px 10px; transition: 0.3s; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: rgba(0, 123, 255, 0.08); color: var(--primary-blue); font-weight: 700; }
+        .sidebar-link i { margin-right: 12px; font-size: 1.2rem; }
+        
+        /* Logout Area */
+        .logout-area { padding: 20px; border-top: 1px solid #eee; }
+        .btn-logout { display: flex !important; align-items: center; padding: 12px 15px; border-radius: 10px; color: #dc3545 !important; background-color: rgba(220, 53, 69, 0.1); text-decoration: none !important; font-weight: 700; transition: 0.3s; border: none; width: 100%; }
+        .btn-logout:hover { background-color: #dc3545; color: #fff !important; }
+
+        .admin-main { margin-left: var(--sidebar-width); min-height: 100vh; padding-bottom: 50px; }
+        .admin-header { background: #fff; padding: 15px 30px; border-bottom: 1px solid #eee; }
+        
+        .admin-card { background: #fff; border: 1px solid #edf2f7; border-radius: 15px; padding: 24px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); margin-bottom: 24px; }
+        
+        /* AI Score Circle */
+        .ai-circle { width: 150px; height: 150px; border-radius: 50%; border: 10px solid #eef2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; transition: 0.5s; }
+        .ai-score-value { font-size: 3rem; font-weight: 800; line-height: 1; }
+        .ai-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
+        
+        /* Progress Bars */
+        .skill-label { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; }
+        .progress { height: 8px; border-radius: 10px; background-color: #f1f5f9; }
+    </style>
+</head>
+<body>
+
+    <aside class="admin-sidebar shadow-sm">
+        <%-- 1. Thêm link Logo quay về Dashboard --%>
+        <div class="sidebar-brand">
+            <a href="${pageContext.request.contextPath}/recruiter/dashboard" class="d-flex align-items-center">
+                <i class="bi bi-rocket-takeoff-fill text-primary me-2 fs-3"></i>
+                <span class="fw-bold fs-4 text-primary">ATS Recruiter</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="${pageContext.request.contextPath}/recruiter/dashboard" class="sidebar-link">
+                    <i class="bi bi-grid-1x2-fill"></i> Tổng quan
+                </a>
+            </li>
+
+            <div class="sidebar-menu-title">Tuyển dụng</div>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/jobs/create" class="sidebar-link"><i class="bi bi-plus-circle"></i> Đăng tin mới</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/jobs" class="sidebar-link"><i class="bi bi-file-earmark-text"></i> Quản lý tin đăng</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/pipeline" class="sidebar-link active"><i class="bi bi-people"></i> Danh sách ứng viên</a></li>
+
+            <div class="sidebar-menu-title">Tài khoản & Dịch vụ</div>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/vip/plans" class="sidebar-link"><i class="bi bi-gem"></i> Gói dịch vụ VIP</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/payment/history" class="sidebar-link"><i class="bi bi-credit-card"></i> Lịch sử thanh toán</a></li>
+            <li class="sidebar-item"><a href="${pageContext.request.contextPath}/recruiter/account/profile" class="sidebar-link"><i class="bi bi-person-gear"></i> Hồ sơ công ty</a></li>
+
+            <div class="sidebar-menu-title">Cá nhân</div>
+            <li class="sidebar-item">
+                <a href="${pageContext.request.contextPath}/recruiter/account/change-password" class="sidebar-link">
+                    <i class="bi bi-key"></i> Đổi mật khẩu
+                </a>
+            </li>
+        </ul>
+
+        <div class="logout-area">
+            <a href="${pageContext.request.contextPath}/auth/logout" class="btn-logout">
+                <i class="bi bi-box-arrow-right me-2"></i> <span>Đăng xuất</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-header sticky-top shadow-sm d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">Phân tích ứng viên bằng AI</h5>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <a href="#" class="text-dark text-decoration-none dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                        <span class="me-2 fw-bold small text-muted">${currentUser.fullName}</span>
+                        <img src="https://ui-avatars.com/api/?name=${currentUser.fullName}&background=007bff&color=fff" class="rounded-circle" width="35" alt="Avatar">
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/recruiter/account/profile"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger py-2" href="${pageContext.request.contextPath}/auth/logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <div class="container-fluid p-4">
+            <%-- Nút quay lại linh hoạt --%>
+            <div class="mb-4">
+                <a href="javascript:history.back()" class="btn btn-white bg-white shadow-sm border rounded-pill px-3 py-2 fw-bold small">
+                    <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách
+                </a>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="admin-card text-center shadow-sm">
+                        <h6 class="fw-bold mb-4 text-muted text-uppercase">Chỉ số phù hợp tổng thể</h6>
+                        <c:choose>
+                            <c:when test="${not empty aiScore}">
+                                <div class="ai-circle ${aiScore.aiScore >= 80 ? 'border-success' : 'border-primary'} mb-3 shadow-sm">
+                                    <span class="ai-score-value ${aiScore.aiScore >= 80 ? 'text-success' : 'text-primary'}">${aiScore.aiScore}</span>
+                                    <span class="ai-label">Điểm AI</span>
+                                </div>
+                                <h5 class="fw-bold mt-3">${application.candidate.user.fullName}</h5>
+                                <p class="text-muted small">Ứng tuyển: <span class="text-dark fw-bold">${application.job.title}</span></p>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="ai-circle border-secondary opacity-50 mb-3">
+                                    <span class="ai-score-value text-muted">--</span>
+                                    <span class="ai-label">N/A</span>
+                                </div>
+                                <p class="text-muted">Chưa có dữ liệu phân tích AI</p>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
-                    <div class="col-md-3">
-                        <select name="status" class="form-select">
-                            <option value="">-- Tất cả trạng thái --</option>
-                            <option value="PENDING" ${status == 'PENDING' ? 'selected' : ''}>Chờ duyệt</option>
-                            <option value="INTERVIEWING" ${status == 'INTERVIEWING' ? 'selected' : ''}>Đang phỏng vấn</option>
-                            <option value="ACCEPTED" ${status == 'ACCEPTED' ? 'selected' : ''}>Đã nhận</option>
-                            <option value="REJECTED" ${status == 'REJECTED' ? 'selected' : ''}>Từ chối</option>
-                        </select>
+
+                    <div class="admin-card">
+                        <h6 class="fw-bold mb-3">Hành động gợi ý</h6>
+                        <div class="d-grid gap-2">
+                            <%-- Nút hành động trỏ về Pipeline (Danh sách ứng viên) --%>
+                            <a href="${pageContext.request.contextPath}/recruiter/pipeline" class="btn btn-primary fw-bold rounded-pill shadow-sm">Ưu tiên phỏng vấn</a>
+                            <a href="${pageContext.request.contextPath}/recruiter/pipeline" class="btn btn-outline-secondary fw-bold rounded-pill">Lưu vào kho nhân tài</a>
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">Lọc dữ liệu</button>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="admin-card shadow-sm">
+                        <h5 class="fw-bold mb-4 border-bottom pb-3">Chi tiết các tiêu chí đánh giá</h5>
+                        
+                        <c:if test="${not empty aiScore}">
+                            <div class="mb-4">
+                                <div class="skill-label"><span>Kỹ năng chuyên môn (Technical Skills)</span><span class="text-success">${aiScore.skillScore}%</span></div>
+                                <div class="progress"><div class="progress-bar bg-success" style="width: ${aiScore.skillScore}%"></div></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="skill-label"><span>Kinh nghiệm làm việc (Experience)</span><span class="text-primary">${aiScore.experienceScore}%</span></div>
+                                <div class="progress"><div class="progress-bar bg-primary" style="width: ${aiScore.experienceScore}%"></div></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="skill-label"><span>Học vấn & Bằng cấp (Education)</span><span class="text-info">${aiScore.educationScore}%</span></div>
+                                <div class="progress"><div class="progress-bar bg-info" style="width: ${aiScore.educationScore}%"></div></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="skill-label"><span>Ngoại ngữ (Languages)</span><span class="text-warning">${aiScore.languageScore}%</span></div>
+                                <div class="progress"><div class="progress-bar bg-warning" style="width: ${aiScore.languageScore}%"></div></div>
+                            </div>
+
+                            <hr class="my-4 opacity-10">
+
+                            <h6 class="fw-bold mb-3"><i class="bi bi-chat-left-dots me-2 text-primary"></i>Nhận xét từ AI</h6>
+                            <div class="p-3 bg-light rounded-4 border-start border-primary border-4">
+                                <p class="mb-0 text-dark fst-italic">
+                                    <c:choose>
+                                        <c:when test="${not empty aiScore.aiComment}">
+                                            "${aiScore.aiComment}"
+                                        </c:when>
+                                        <c:otherwise>
+                                            "Hệ thống đang tổng hợp nhận xét chi tiết dựa trên CV của ứng viên..."
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
+                            </div>
+                        </c:if>
+                        
+                        <c:if test="${empty aiScore}">
+                            <div class="text-center py-5">
+                                <i class="bi bi-cpu fs-1 text-muted opacity-25"></i>
+                                <p class="mt-3 text-muted">Hệ thống AI đang chờ dữ liệu xử lý...</p>
+                                <form action="${pageContext.request.contextPath}/recruiter/ai/analyze" method="POST">
+                                    <input type="hidden" name="applicationId" value="${application.id}">
+                                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm mt-2">Kích hoạt phân tích ngay</button>
+                                </form>
+                            </div>
+                        </c:if>
                     </div>
-                </form>
+                    
+                    <div class="admin-card bg-primary bg-opacity-10 border-primary border-opacity-10 mb-0 rounded-4">
+                        <h6 class="fw-bold text-primary mb-2"><i class="bi bi-info-circle me-2"></i>Lưu ý của hệ thống</h6>
+                        <p class="small text-muted mb-0">Chỉ số này dựa trên phân tích ngôn ngữ tự nhiên. Nhà tuyển dụng nên xem xét trực tiếp CV để có cái nhìn chính xác nhất.</p>
+                    </div>
+                </div>
             </div>
         </div>
+    </main>
 
-        <div class="table-responsive bg-white rounded shadow-sm">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Ứng viên</th>
-                        <th>Vị trí ứng tuyển</th>
-                        <th>Ngày nộp</th>
-                        <th>Điểm AI</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach var="app" items="${applications}">
-                        <tr>
-                            <td>
-                                <div class="fw-bold">${app.candidate.fullName}</div>
-                                <div class="small text-muted">${app.candidate.email}</div>
-                            </td>
-                            <td>${app.job.title}</td>
-                            <td>${app.appliedDate}</td>
-                            <td><span class="badge bg-dark">${app.aiScore != null ? app.aiScore : 'N/A'}</span></td>
-                            <td><span class="badge rounded-pill bg-info text-dark">${app.status}</span></td>
-                            <td>
-                                <a href="candidates/detail?applicationId=${app.id}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

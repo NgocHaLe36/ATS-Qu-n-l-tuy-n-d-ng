@@ -1,122 +1,86 @@
 package com.ats.servlet.recruiter.jobs;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
 import com.ats.dao.impl.JobDAOImpl;
-import com.ats.dao.impl.SubscriptionDAOImpl;
 import com.ats.entity.Job;
-import com.ats.entity.Subscription;
 import com.ats.entity.User;
 
 @WebServlet("/recruiter/jobs/update")
 public class RecruiterUpdateJobServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-
     private final JobDAOImpl jobDAO = new JobDAOImpl();
-    private final SubscriptionDAOImpl subscriptionDAO = new SubscriptionDAOImpl();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        User recruiter = getCurrentRecruiter(request, response);
-        if (recruiter == null) return;
-
-        Integer jobId = parseInteger(request.getParameter("id"));
-        Job job = jobId == null ? null : jobDAO.findById(jobId);
-
-        if (job == null || job.getRecruiter() == null || !recruiter.getId().equals(job.getRecruiter().getId())) {
-            response.sendRedirect(request.getContextPath() + "/recruiter/jobs");
-            return;
-        }
-
-        String title = trim(request.getParameter("title"));
-        String description = trim(request.getParameter("description"));
-        String requirement = trim(request.getParameter("requirement"));
-        String location = trim(request.getParameter("location"));
-        String status = trim(request.getParameter("status"));
-        String deadlineStr = trim(request.getParameter("deadline"));
-        BigDecimal salary = parseDecimal(request.getParameter("salary"));
-        boolean isVip = "true".equalsIgnoreCase(request.getParameter("isVip"));
-
-        if (title.isEmpty() || description.isEmpty() || requirement.isEmpty() || location.isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin công việc.");
-            request.setAttribute("job", job);
-            request.getRequestDispatcher("/views/recruiter/jobs/edit-job.jsp").forward(request, response);
-            return;
-        }
-
-        Subscription activeSubscription = subscriptionDAO.findActiveByUserId(recruiter.getId());
-        if (isVip && activeSubscription == null) {
-            request.setAttribute("error", "Bạn cần gói VIP đang hoạt động để đăng tin VIP.");
-            request.setAttribute("job", job);
-            request.getRequestDispatcher("/views/recruiter/jobs/edit-job.jsp").forward(request, response);
-            return;
-        }
-
-        job.setTitle(title);
-        job.setDescription(description);
-        job.setRequirement(requirement);
-        job.setLocation(location);
-        job.setSalary(salary);
-        job.setIsVip(isVip);
-        job.setStatus(status.isEmpty() ? job.getStatus() : status);
-        job.setDeadline(parseDateTime(deadlineStr));
-        job.setUpdatedDate(LocalDateTime.now());
-
-        jobDAO.update(job);
-        response.sendRedirect(request.getContextPath() + "/recruiter/jobs/detail?id=" + job.getId());
-    }
-
-    private LocalDateTime parseDateTime(String value) {
-        try {
-            if (value == null || value.trim().isEmpty()) return null;
-            return LocalDateTime.parse(value);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private BigDecimal parseDecimal(String value) {
-        try {
-            if (value == null || value.trim().isEmpty()) return null;
-            return new BigDecimal(value.trim());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private Integer parseInteger(String value) {
-        try {
-            return Integer.valueOf(value);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private String trim(String value) {
-        return value == null ? "" : value.trim();
-    }
-
-    private User getCurrentRecruiter(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // 1. Kiểm tra login
         HttpSession session = request.getSession(false);
-        if (session == null) {
+        User recruiter = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (recruiter == null || !"recruiter".equalsIgnoreCase(recruiter.getRole())) {
             response.sendRedirect(request.getContextPath() + "/auth/login");
-            return null;
+            return;
         }
 
-        User user = (User) session.getAttribute("currentUser");
-        if (user == null || !"recruiter".equalsIgnoreCase(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/auth/login");
-            return null;
+        try {
+            // 2. Lấy ID và tìm tin tuyển dụng
+            Integer jobId = Integer.parseInt(request.getParameter("id"));
+            Job job = jobDAO.findById(jobId);
+
+            if (job != null && job.getRecruiter().getId().equals(recruiter.getId())) {
+                
+                // 3. Cập nhật các thông tin cơ bản
+                job.setTitle(request.getParameter("title"));
+                job.setDescription(request.getParameter("description"));
+                job.setRequirement(request.getParameter("requirement"));
+                job.setLocation(request.getParameter("location"));
+                
+                // 4. BỔ SUNG: Cập nhật trạng thái tin (Nút này nãy Hà bị thiếu)
+                String status = request.getParameter("status");
+                if (status != null && !status.isEmpty()) {
+                    job.setStatus(status.toUpperCase()); // Đảm bảo lưu OPEN, HIDDEN hoặc CLOSED
+                }
+
+                // 5. Cập nhật lương
+                String salaryStr = request.getParameter("salary");
+                if (salaryStr != null && !salaryStr.isEmpty()) {
+                    job.setSalary(new java.math.BigDecimal(salaryStr).intValue());
+                }
+
+                // 6. Cập nhật Deadline (Dùng LocalDateTime an toàn hơn)
+                String deadlineStr = request.getParameter("deadline");
+                if (deadlineStr != null && !deadlineStr.isEmpty()) {
+                    // Cắt bớt nếu chuỗi có định dạng không chuẩn hoặc parse trực tiếp
+                    job.setDeadline(java.time.LocalDateTime.parse(deadlineStr).toLocalDate());
+                }
+
+                // 7. Cập nhật Tin VIP
+                String isVip = request.getParameter("isVip");
+                job.setIsVip("true".equals(isVip));
+
+                job.setUpdatedDate(java.time.LocalDateTime.now());
+
+                // 8. Lưu xuống Database
+                jobDAO.update(job);
+
+                // Thành công thì về trang chi tiết công việc
+                response.sendRedirect(request.getContextPath() + "/recruiter/jobs/detail?id=" + jobId + "&success=true");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/recruiter/jobs?error=access_denied");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Nếu lỗi (ví dụ sai định dạng ngày), quay lại trang edit và báo lỗi
+            response.sendRedirect(request.getContextPath() + "/recruiter/jobs/edit?id=" + request.getParameter("id") + "&error=true");
         }
-        return user;
     }
 }

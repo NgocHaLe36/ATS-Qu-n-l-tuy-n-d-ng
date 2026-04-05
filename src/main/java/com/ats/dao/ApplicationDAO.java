@@ -21,4 +21,13 @@ public interface ApplicationDAO extends BaseDAO<Application, Integer> {
     Application findByIdAndCandidateId(Integer applicationId, Integer candidateId);
 
     Application findByIdAndRecruiterId(Integer applicationId, Integer recruiterId);
+
+    Long countByRecruiterId(Integer recruiterId);
+    
+    Long countByStatusAndRecruiterId(Integer recruiterId, String status);
+    
+    long countPendingInterviews(Integer recruiterId);
+    
+    long countAcceptedCandidates(Integer recruiterId);
+    
 }

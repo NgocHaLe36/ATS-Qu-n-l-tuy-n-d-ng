@@ -33,6 +33,7 @@ public class PipelineServlet extends HttpServlet {
 
         List<Application> applications = new ArrayList<>();
 
+        // 1. Lấy dữ liệu ứng viên
         if (jobId != null) {
             Job job = jobDAO.findById(jobId);
             if (job != null && job.getRecruiter() != null && recruiter.getId().equals(job.getRecruiter().getId())) {
@@ -45,24 +46,30 @@ public class PipelineServlet extends HttpServlet {
             }
         }
 
+        // 2. Logic lọc trạng thái (Đã sửa để khớp Interview/Interviewing)
         if (!status.isEmpty()) {
             applications = applications.stream()
-                    .filter(a -> status.equalsIgnoreCase(a.getStatus()))
-                    .collect(Collectors.toList());
+                .filter(a -> {
+                    String appStatus = (a.getStatus() != null) ? a.getStatus() : "";
+                    if ("Interviewing".equalsIgnoreCase(status)) {
+                        return appStatus.toLowerCase().startsWith("inter");
+                    }
+                    return status.equalsIgnoreCase(appStatus);
+                })
+                .collect(Collectors.toList());
         }
 
+        // 3. Đẩy dữ liệu ra JSP
         request.setAttribute("applications", applications);
         request.setAttribute("status", status);
         request.setAttribute("jobId", jobId);
+
+        // ĐƯỜNG DẪN CHUẨN THEO ẢNH CỦA HÀ: /views/recruiter/pipeline/pipeline.jsp
         request.getRequestDispatcher("/views/recruiter/pipeline/pipeline.jsp").forward(request, response);
     }
 
     private Integer parseInteger(String value) {
-        try {
-            return Integer.valueOf(value);
-        } catch (Exception e) {
-            return null;
-        }
+        try { return Integer.valueOf(value); } catch (Exception e) { return null; }
     }
 
     private String trim(String value) {
@@ -71,13 +78,13 @@ public class PipelineServlet extends HttpServlet {
 
     private User getCurrentRecruiter(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
-        if (session == null) {
+        if (session == null || session.getAttribute("currentUser") == null) {
             response.sendRedirect(request.getContextPath() + "/auth/login");
             return null;
         }
 
         User user = (User) session.getAttribute("currentUser");
-        if (user == null || !"recruiter".equalsIgnoreCase(user.getRole())) {
+        if (!"recruiter".equalsIgnoreCase(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/auth/login");
             return null;
         }

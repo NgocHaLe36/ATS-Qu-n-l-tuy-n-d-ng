@@ -15,63 +15,45 @@ import com.ats.entity.User;
 
 @WebServlet("/recruiter/vip/register")
 public class RegisterVipServlet extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-
     private final PlanDAOImpl planDAO = new PlanDAOImpl();
     private final SubscriptionDAOImpl subscriptionDAO = new SubscriptionDAOImpl();
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        User recruiter = getCurrentRecruiter(request, response);
-        if (recruiter == null) return;
-
-        Integer planId = parseInteger(request.getParameter("planId"));
-        Plan plan = planId == null ? null : planDAO.findById(planId);
-
-        if (plan == null) {
-            response.sendRedirect(request.getContextPath() + "/recruiter/vip/plans");
-            return;
-        }
-
-        Subscription activeSubscription = subscriptionDAO.findActiveByUserId(recruiter.getId());
-        if (activeSubscription != null) {
-            request.getSession().setAttribute("warningMessage", "Bạn đang có gói VIP còn hiệu lực.");
-            response.sendRedirect(request.getContextPath() + "/recruiter/vip/plans");
-            return;
-        }
-
-        Subscription subscription = new Subscription();
-        subscription.setUser(recruiter);
-        subscription.setPlan(plan);
-        subscription.setStartDate(LocalDateTime.now());
-        subscription.setEndDate(LocalDateTime.now().plusDays(plan.getDurationDays()));
-        subscription.setStatus("pending");
-
-        subscription = subscriptionDAO.save(subscription);
-        response.sendRedirect(request.getContextPath() + "/recruiter/payment?subscriptionId=" + subscription.getId());
-    }
-
-    private Integer parseInteger(String value) {
-        try {
-            return Integer.valueOf(value);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private User getCurrentRecruiter(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        
         HttpSession session = request.getSession(false);
-        if (session == null) {
-            response.sendRedirect(request.getContextPath() + "/auth/login");
-            return null;
+        User recruiter = (User) session.getAttribute("currentUser");
+        
+        String planIdStr = request.getParameter("planId");
+        System.out.println("DEBUG: Dang dang ky voi Plan ID = " + planIdStr);
+
+        if (planIdStr == null || planIdStr.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/recruiter/vip/plans");
+            return;
         }
 
-        User user = (User) session.getAttribute("currentUser");
-        if (user == null || !"recruiter".equalsIgnoreCase(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/auth/login");
-            return null;
+        Integer planId = Integer.parseInt(planIdStr);
+        Plan plan = planDAO.findById(planId);
+
+        if (plan != null) {
+            Subscription subscription = new Subscription();
+            subscription.setUser(recruiter);
+            subscription.setPlan(plan);
+            subscription.setStartDate(LocalDateTime.now());
+            subscription.setEndDate(LocalDateTime.now().plusDays(plan.getDurationDays()));
+            subscription.setStatus("pending");
+
+            // LƯU Ý: Gán lại để lấy ID
+            subscription = subscriptionDAO.save(subscription);
+            
+            if (subscription != null && subscription.getId() != null) {
+                System.out.println("DEBUG: Luu thanh cong Sub ID = " + subscription.getId());
+                response.sendRedirect(request.getContextPath() + "/recruiter/payment?subscriptionId=" + subscription.getId());
+            } else {
+                System.out.println("DEBUG: Loi khong luu duoc vao Database!");
+                response.sendRedirect(request.getContextPath() + "/recruiter/vip/plans?error=db");
+            }
         }
-        return user;
     }
 }

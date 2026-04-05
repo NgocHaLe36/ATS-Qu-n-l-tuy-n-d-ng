@@ -79,4 +79,50 @@ public class SubscriptionDAOImpl extends AbstractDAO<Subscription> implements Su
             em.close();
         }
     }
+    
+    @Override
+    public Subscription update(Subscription entity) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            Subscription updatedEntity = em.merge(entity); // Lưu kết quả merge
+            em.getTransaction().commit();
+            return updatedEntity; // Trả về đối tượng đã update
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public Subscription save(Subscription entity) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.flush(); // Đẩy dữ liệu xuống DB để sinh ID ngay lập tức
+            em.getTransaction().commit();
+            return entity; // Trả về entity đã có ID
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            e.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    @Override
+    public Subscription findById(Integer id) {
+        EntityManager em = getEntityManager();
+        try {
+            return em.find(Subscription.class, id);
+        } finally {
+            em.close();
+        }
+    }
 }
