@@ -67,8 +67,7 @@ public class SaveScorecardServlet extends HttpServlet {
         scorecard.setTechnicalScore(technical.intValue());
         scorecard.setCommunicationScore(communication.intValue());
         scorecard.setAttitudeScore(attitude.intValue());
-        scorecard.setLanguageScore(language.intValue());
-        scorecard.setAverageScore(average);
+        scorecard.setLanguageScore(Integer.valueOf(language.intValue()));        scorecard.setAverageScore(average);
         scorecard.setResult(result);
         scorecard.setComment(comment.isEmpty() ? null : comment);
 

@@ -1,8 +1,10 @@
 package com.ats.servlet.recruiter.jobs;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -30,9 +32,10 @@ public class RecruiterUpdateJobServlet extends HttpServlet {
             return;
         }
 
+        String idStr = request.getParameter("id");
         try {
             // 2. Lấy ID và tìm tin tuyển dụng
-            Integer jobId = Integer.parseInt(request.getParameter("id"));
+            Integer jobId = Integer.parseInt(idStr);
             Job job = jobDAO.findById(jobId);
 
             if (job != null && job.getRecruiter().getId().equals(recruiter.getId())) {
@@ -43,35 +46,49 @@ public class RecruiterUpdateJobServlet extends HttpServlet {
                 job.setRequirement(request.getParameter("requirement"));
                 job.setLocation(request.getParameter("location"));
                 
-                // 4. BỔ SUNG: Cập nhật trạng thái tin (Nút này nãy Hà bị thiếu)
+                // 4. Cập nhật trạng thái tin
                 String status = request.getParameter("status");
                 if (status != null && !status.isEmpty()) {
-                    job.setStatus(status.toUpperCase()); // Đảm bảo lưu OPEN, HIDDEN hoặc CLOSED
+                    job.setStatus(status.toUpperCase());
                 }
 
-                // 5. Cập nhật lương
+                // 5. CHỈNH SỬA: Cập nhật lương (Chuyển BigDecimal sang Integer an toàn)
                 String salaryStr = request.getParameter("salary");
                 if (salaryStr != null && !salaryStr.isEmpty()) {
-                    job.setSalary(new java.math.BigDecimal(salaryStr).intValue());
+                    try {
+                        BigDecimal salaryDec = new BigDecimal(salaryStr);
+                        job.setSalary(salaryDec.intValue()); // Chuyển về Integer để khớp với entity Job
+                    } catch (NumberFormatException e) {
+                        // Xử lý nếu format lương nhập vào không đúng
+                    }
                 }
 
-                // 6. Cập nhật Deadline (Dùng LocalDateTime an toàn hơn)
+                // 6. CHỈNH SỬA: Cập nhật Deadline (Chuyển LocalDateTime sang LocalDate)
                 String deadlineStr = request.getParameter("deadline");
                 if (deadlineStr != null && !deadlineStr.isEmpty()) {
-                    // Cắt bớt nếu chuỗi có định dạng không chuẩn hoặc parse trực tiếp
-                    job.setDeadline(java.time.LocalDateTime.parse(deadlineStr).toLocalDate());
+                    try {
+                        // Nếu input là datetime-local (yyyy-MM-ddTHH:mm), parse sang LocalDateTime rồi lấy LocalDate
+                        if (deadlineStr.contains("T")) {
+                            job.setDeadline(LocalDateTime.parse(deadlineStr).toLocalDate());
+                        } else {
+                            // Nếu input chỉ là date (yyyy-MM-dd)
+                            job.setDeadline(LocalDate.parse(deadlineStr));
+                        }
+                    } catch (DateTimeParseException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 // 7. Cập nhật Tin VIP
                 String isVip = request.getParameter("isVip");
                 job.setIsVip("true".equals(isVip));
 
-                job.setUpdatedDate(java.time.LocalDateTime.now());
+                job.setUpdatedDate(LocalDateTime.now());
 
                 // 8. Lưu xuống Database
                 jobDAO.update(job);
 
-                // Thành công thì về trang chi tiết công việc
+                // Thành công
                 response.sendRedirect(request.getContextPath() + "/recruiter/jobs/detail?id=" + jobId + "&success=true");
             } else {
                 response.sendRedirect(request.getContextPath() + "/recruiter/jobs?error=access_denied");
@@ -79,8 +96,7 @@ public class RecruiterUpdateJobServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Nếu lỗi (ví dụ sai định dạng ngày), quay lại trang edit và báo lỗi
-            response.sendRedirect(request.getContextPath() + "/recruiter/jobs/edit?id=" + request.getParameter("id") + "&error=true");
+            response.sendRedirect(request.getContextPath() + "/recruiter/jobs/edit?id=" + idStr + "&error=true");
         }
     }
 }
