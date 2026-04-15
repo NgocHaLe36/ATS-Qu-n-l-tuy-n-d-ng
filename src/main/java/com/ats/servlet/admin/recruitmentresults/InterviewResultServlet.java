@@ -35,7 +35,7 @@ public class InterviewResultServlet extends HttpServlet {
 
         request.setAttribute("application", application);
         request.setAttribute("latestInterview", latestInterview);
-        request.getRequestDispatcher("/views/admin/recruitment-results/recruitment-result-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/admin/recruitment-results/interview-detail.jsp").forward(request, response);
     }
 
     private Integer parseInteger(String value) {

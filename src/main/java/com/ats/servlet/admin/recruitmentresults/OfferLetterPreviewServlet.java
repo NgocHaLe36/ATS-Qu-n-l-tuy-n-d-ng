@@ -30,7 +30,7 @@ public class OfferLetterPreviewServlet extends HttpServlet {
         }
 
         request.setAttribute("application", application);
-        request.getRequestDispatcher("/views/admin/recruitment-results/recruitment-result-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/admin/recruitment-results/offer-preview.jsp").forward(request, response);
     }
 
     private Integer parseInteger(String value) {
