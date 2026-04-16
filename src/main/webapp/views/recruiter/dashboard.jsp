@@ -159,13 +159,13 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${job.status == 'OPEN' || job.status == 'active'}">
-                                                            <span class="badge-job bg-open">OPEN</span>
+                                                            <span class="badge-job bg-open">ĐANG MỞ</span>
                                                         </c:when>
                                                         <c:when test="${job.status == 'CLOSED' || job.status == 'expired'}">
-                                                            <span class="badge-job bg-closed">CLOSED</span>
+                                                            <span class="badge-job bg-closed">ĐÃ ĐÓNG</span>
                                                         </c:when>
                                                         <c:when test="${job.status == 'HIDDEN'}">
-                                                            <span class="badge-job bg-hidden">HIDDEN</span>
+                                                            <span class="badge-job bg-hidden">ĐÃ ẨN</span>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <span class="badge-job bg-secondary text-white">${job.status}</span>

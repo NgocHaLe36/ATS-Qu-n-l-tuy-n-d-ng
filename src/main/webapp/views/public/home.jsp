@@ -1,6 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%-- THÊM THƯ VIỆN NÀY ĐỂ XỬ LÝ CHUỖI ROLE AN TOÀN --%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -8,37 +11,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ATS - Tìm Công Việc Mơ Ước</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
         body { font-family: 'Inter', sans-serif; color: #333; }
         .text-blue { color: #007bff; }
         .bg-blue { background-color: #007bff; }
-        
-        /* Header */
         .navbar-brand img { height: 40px; }
         .nav-link { font-weight: 500; color: #555; }
-        
-        /* Hero Section */
         .hero-section { padding: 80px 0; background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%); }
         .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.2; }
         .search-box { background: #fff; padding: 15px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .hero-img { border-radius: 20px; width: 100%; box-shadow: 20px 20px 60px rgba(0,0,0,0.1); }
-
-        /* Stats Bar */
         .stats-bar { background-color: #007bff; color: white; padding: 40px 0; }
         .stat-item h2 { font-weight: 700; margin-bottom: 0; }
-
-        /* Job Cards */
         .job-card { border: 1px solid #eee; border-radius: 15px; padding: 20px; transition: all 0.3s ease; height: 100%; }
         .job-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .badge-tag { background: #f0f2f5; color: #666; font-size: 0.8rem; border: none; margin-right: 5px; }
-        
-        /* CTA Section */
         .cta-blue-box { background: #007bff; border-radius: 20px; padding: 60px; color: white; background-image: radial-gradient(circle at top right, #1e90ff, #007bff); }
-
-        /* Footer */
         footer { padding: 60px 0 20px; border-top: 1px solid #eee; font-size: 0.9rem; }
         footer h6 { font-weight: 700; margin-bottom: 20px; }
         footer ul { list-style: none; padding: 0; }
@@ -48,7 +39,7 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3 shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="${pageContext.request.contextPath}/home">
                 <i class="bi bi-building-fill text-primary me-2 fs-3"></i>
@@ -64,36 +55,45 @@
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/company">Công ty</a></li>
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/about">Giới thiệu</a></li>
                 </ul>
-              <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center">
                     <c:choose>
-                        <%-- Đã sửa điều kiện thành not empty để kiểm tra người dùng ĐÃ đăng nhập --%>
                         <c:when test="${not empty sessionScope.currentUser}">
                             <div class="dropdown">
-                                <a class="btn btn-outline-primary rounded-pill px-4 dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="btn btn-primary rounded-pill px-4 dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-person-circle me-2"></i> ${sessionScope.currentUser.fullName}
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2">
-                                    <%-- Nếu là ứng viên --%>
-                                    <c:if test="${sessionScope.currentUser.role == 'CANDIDATE' or sessionScope.currentUser.role == 'candidate'}">
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                    
+							<%-- Trong file home.jsp --%>
+							<c:if test="${fn:toLowerCase(sessionScope.currentUser.role) == 'admin'}">
+							    <li>
+							        <a class="dropdown-item fw-bold text-primary" 
+							           href="${pageContext.request.contextPath}/admin/dashboard">
+							            <i class="bi bi-speedometer2 me-2"></i> Quản trị hệ thống
+							        </a>
+							    </li>
+							    <li><hr class="dropdown-divider"></li>
+							</c:if>
+
+                                    <c:if test="${fn:toLowerCase(sessionScope.currentUser.role) == 'candidate'}">
                                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/dashboard"><i class="bi bi-grid-fill me-2 text-muted"></i> Quản lý hồ sơ</a></li>
                                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/candidate/applied-jobs"><i class="bi bi-briefcase-fill me-2 text-muted"></i> Việc làm đã nộp</a></li>
                                     </c:if>
                                     
-                                    <%-- Nếu là nhà tuyển dụng (Dự phòng cho tài khoản Recruiter) --%>
-                                    <c:if test="${sessionScope.currentUser.role == 'RECRUITER' or sessionScope.currentUser.role == 'recruiter'}">
+                                    <c:if test="${fn:toLowerCase(sessionScope.currentUser.role) == 'recruiter'}">
                                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/recruiter/dashboard"><i class="bi bi-speedometer2 me-2 text-muted"></i> Bảng điều khiển HR</a></li>
                                     </c:if>
 
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person-gear me-2 text-muted"></i> Hồ sơ cá nhân</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth/logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                                 </ul>
                             </div>
                         </c:when>
                         
-                        <%-- Nếu CHƯA đăng nhập --%>
                         <c:otherwise>
                             <a href="${pageContext.request.contextPath}/auth/login" class="btn btn-link text-dark text-decoration-none me-3">Đăng nhập</a>
-                            <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-primary px-4 rounded-pill">Đăng ký ngay</a>
+                            <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-primary px-4 rounded-pill shadow-sm">Đăng ký ngay</a>
                         </c:otherwise>
                     </c:choose>
                 </div>
@@ -105,7 +105,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <span class="badge bg-light text-primary mb-3 px-3 py-2 rounded-pill">
+                    <span class="badge bg-light text-primary mb-3 px-3 py-2 rounded-pill shadow-sm">
                         <i class="bi bi-graph-up-arrow me-2"></i>XU HƯỚNG TUYỂN DỤNG 2026
                     </span>
                     <h1 class="hero-title mb-4">
@@ -123,7 +123,7 @@
                             <i class="bi bi-geo-alt me-2 text-muted"></i>
                             <input type="text" name="location" class="border-0 w-75 shadow-none outline-0" placeholder="Khu vực làm việc...">
                         </div>
-                        <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Tìm kiếm</button>
+                        <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">Tìm kiếm</button>
                     </form>
 
                     <div class="mt-3">
@@ -141,7 +141,7 @@
         </div>
     </section>
 
-    <div class="stats-bar">
+    <div class="stats-bar shadow-sm">
         <div class="container">
             <div class="row text-center">
                 <div class="col-md-3 stat-item">
@@ -204,7 +204,8 @@
                 </c:forEach>
                 
                 <c:if test="${empty latestJobs}">
-                     <div class="col-12 text-center py-4">
+                     <div class="col-12 text-center py-5">
+                        <i class="bi bi-inbox text-muted fs-1 d-block mb-3"></i>
                         <p class="text-muted">Hiện tại chưa có việc làm nào mới.</p>
                      </div>
                 </c:if>
@@ -214,13 +215,13 @@
 
     <section class="py-5">
         <div class="container">
-            <div class="cta-blue-box position-relative overflow-hidden">
+            <div class="cta-blue-box position-relative overflow-hidden shadow">
                 <div class="row align-items-center">
                     <div class="col-lg-7">
                         <h2 class="display-5 fw-bold mb-4">Bắt Đầu Hành Trình Sự Nghiệp Tuyệt Vời Ngay Hôm Nay</h2>
                         <p class="mb-4 opacity-75">Đừng bỏ lỡ những cơ hội tốt nhất. Đăng ký tài khoản để nhận thông báo việc làm và quản lý hồ sơ chuyên nghiệp.</p>
                         <div class="d-flex gap-3">
-                            <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-white bg-white text-primary px-4 py-2 fw-bold">Đăng ký ứng viên</a>
+                            <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-white bg-white text-primary px-4 py-2 fw-bold shadow-sm">Đăng ký ứng viên</a>
                             <a href="${pageContext.request.contextPath}/contact" class="btn btn-outline-light px-4 py-2">Liên hệ tuyển dụng</a>
                         </div>
                     </div>
@@ -275,10 +276,14 @@
             <hr>
             <div class="d-flex justify-content-between small text-muted">
                 <p>© 2026 ATS Recruitment System. Bảo lưu mọi quyền.</p>
+                <div class="d-flex gap-3">
+                    <a href="#" class="text-muted">Chính sách bảo mật</a>
+                    <a href="#" class="text-muted">Điều khoản sử dụng</a>
+                </div>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html> 
+</html>

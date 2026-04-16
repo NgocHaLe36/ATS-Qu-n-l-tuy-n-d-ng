@@ -135,7 +135,28 @@ public class UserDAOImpl extends AbstractDAO<User> implements UserDAO {
     public List<User> searchPublicRecruiters(String keyword, int page, int pageSize) {
         EntityManager em = getEntityManager();
         try {
-            // ... (Giữ nguyên phần StringBuilder jpql và setup Query ở trên) ...
+            StringBuilder jpql = new StringBuilder();
+            jpql.append("SELECT u FROM User u ");
+            jpql.append("WHERE u.role = :role ");
+            jpql.append("AND u.status = true ");
+
+            if (hasText(keyword)) {
+                jpql.append("AND (");
+                jpql.append("LOWER(COALESCE(u.fullName, '')) LIKE :keyword ");
+                jpql.append("OR LOWER(COALESCE(u.email, '')) LIKE :keyword ");
+                jpql.append("OR LOWER(COALESCE(u.phone, '')) LIKE :keyword");
+                jpql.append(") ");
+            }
+            jpql.append("ORDER BY u.createdDate DESC");
+
+            // --- ĐÂY LÀ DÒNG QUAN TRỌNG ĐỂ HẾT LỖI ĐỎ ---
+            TypedQuery<User> query = em.createQuery(jpql.toString(), User.class);
+            // --------------------------------------------
+
+            query.setParameter("role", RECRUITER_ROLE);
+            if (hasText(keyword)) {
+                query.setParameter("keyword", "%" + keyword.trim().toLowerCase() + "%");
+            }
 
             int safePage = page <= 0 ? 1 : page;
             int safePageSize = pageSize <= 0 ? 10 : pageSize;
@@ -145,14 +166,12 @@ public class UserDAOImpl extends AbstractDAO<User> implements UserDAO {
 
             List<User> recruiters = query.getResultList();
             
-            // --- ĐOẠN CODE BỔ SUNG ---
-            // Ép Hibernate tải danh sách jobs trước khi đóng Session
+            // Ép Hibernate tải danh sách jobs trước khi đóng Session (Lazy Loading)
             for (User recruiter : recruiters) {
                 if (recruiter.getJobs() != null) {
                     recruiter.getJobs().size(); 
                 }
             }
-            // -------------------------
 
             return recruiters;
         } finally {

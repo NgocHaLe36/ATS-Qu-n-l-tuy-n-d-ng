@@ -19,20 +19,28 @@ public class RecruiterViewCvServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        request.setCharacterEncoding("UTF-8"); // Đảm bảo không lỗi font
         User recruiter = getCurrentRecruiter(request, response);
         if (recruiter == null) return;
 
         Integer applicationId = parseInteger(request.getParameter("applicationId"));
-        Application application = applicationId == null ? null : applicationDAO.findById(applicationId);
+        Application application = (applicationId == null) ? null : applicationDAO.findById(applicationId);
 
-        if (!isOwnedApplication(recruiter, application)) {
-            response.sendRedirect(request.getContextPath() + "/recruiter/candidates");
+        // Kiểm tra quyền sở hữu tin đăng của Recruiter
+        if (application == null || !isOwnedApplication(recruiter, application)) {
+            response.sendRedirect(request.getContextPath() + "/recruiter/pipeline");
             return;
         }
 
+        // 1. Lấy tên file CV từ thực thể Application (ví dụ: "my_cv.pdf")
+        String cvFileName = application.getCvFile(); 
+        
+        // 2. Đẩy dữ liệu sang JSP
         request.setAttribute("application", application);
         request.setAttribute("candidate", application.getCandidate());
-        request.setAttribute("cvFile", application.getCvFile());
+        request.setAttribute("cvFile", cvFileName); // Biến này sẽ dùng trong iframe src
+        
         request.getRequestDispatcher("/views/recruiter/candidates/view-cv.jsp").forward(request, response);
     }
 

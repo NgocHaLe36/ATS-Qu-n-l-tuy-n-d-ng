@@ -31,9 +31,12 @@ public class AdminDashboardServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        // 1. Kiểm tra quyền Admin trước khi cho phép vào Dashboard
         User admin = getCurrentAdmin(request, response);
         if (admin == null) return;
 
+        // 2. Lấy toàn bộ dữ liệu cần thiết cho thống kê
         List<User> recruiters = userDAO.findByRole("recruiter");
         List<User> candidates = userDAO.findByRole("candidate");
         List<Job> jobs = jobDAO.findAll();
@@ -41,6 +44,7 @@ public class AdminDashboardServlet extends HttpServlet {
         List<Payment> payments = paymentDAO.findAll();
         List<Subscription> subscriptions = subscriptionDAO.findAll();
 
+        // 3. Đưa các con số tổng quát vào Request Attribute
         request.setAttribute("admin", admin);
         request.setAttribute("totalRecruiters", recruiters.size());
         request.setAttribute("totalCandidates", candidates.size());
@@ -49,22 +53,39 @@ public class AdminDashboardServlet extends HttpServlet {
         request.setAttribute("totalPayments", payments.size());
         request.setAttribute("totalSubscriptions", subscriptions.size());
 
-        request.setAttribute("latestRecruiters", recruiters.size() > 5 ? recruiters.subList(0, 5) : recruiters);
-        request.setAttribute("latestCandidates", candidates.size() > 5 ? candidates.subList(0, 5) : candidates);
-        request.setAttribute("latestJobs", jobs.size() > 5 ? jobs.subList(0, 5) : jobs);
-        request.setAttribute("latestApplications", applications.size() > 8 ? applications.subList(0, 8) : applications);
-        request.setAttribute("latestPayments", payments.size() > 8 ? payments.subList(0, 8) : payments);
+        // 4. Lấy danh sách mới nhất (giới hạn số lượng hiển thị trên Dashboard)
+        request.setAttribute("latestRecruiters", getSubList(recruiters, 5));
+        request.setAttribute("latestCandidates", getSubList(candidates, 5));
+        request.setAttribute("latestJobs", getSubList(jobs, 5));
+        request.setAttribute("latestApplications", getSubList(applications, 8));
+        request.setAttribute("latestPayments", getSubList(payments, 8));
 
+        // 5. Chuyển tiếp sang giao diện Dashboard
+        // Lưu ý: Tên file JSP của bạn đang là dashbroad.jsp (đúng theo ảnh cấu trúc thư mục của bạn)
         request.getRequestDispatcher("/views/admin/dashbroad.jsp").forward(request, response);
     }
 
+    /**
+     * Hàm bổ trợ để lấy sublist an toàn, tránh lỗi IndexOutOfBounds
+     */
+    private <T> List<T> getSubList(List<T> list, int limit) {
+        if (list == null || list.isEmpty()) return list;
+        return list.size() > limit ? list.subList(0, limit) : list;
+    }
+
+    /**
+     * Kiểm tra phiên làm việc và quyền hạn của Admin
+     */
     private User getCurrentAdmin(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null) {
             response.sendRedirect(request.getContextPath() + "/auth/login");
             return null;
         }
+        
         User user = (User) session.getAttribute("currentUser");
+        
+        // Dùng equalsIgnoreCase để so sánh role an toàn nhất
         if (user == null || !"admin".equalsIgnoreCase(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/auth/login");
             return null;

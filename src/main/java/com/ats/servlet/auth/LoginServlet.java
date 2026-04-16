@@ -1,7 +1,6 @@
 package com.ats.servlet.auth;
 
 import java.io.IOException;
-
 import com.ats.dao.CandidateDAO;
 import com.ats.dao.UserDAO;
 import com.ats.dao.impl.CandidateDAOImpl;
@@ -29,7 +28,7 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("currentUser") != null) {
             User currentUser = (User) session.getAttribute("currentUser");
-            // Nếu đã đăng nhập rồi thì đá thẳng vào dashboard tương ứng
+            // Nếu đã đăng nhập, đẩy về dashboard tương ứng với Role
             response.sendRedirect(request.getContextPath() + getDashboardByRole(currentUser.getRole()));
             return;
         }
@@ -52,9 +51,9 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        // Tìm User trong Database
         User user = userDAO.findByEmailAndPassword(email, password);
 
-        // 1. Kiểm tra tài khoản có tồn tại không
         if (user == null) {
             User existingUser = userDAO.findByEmail(email);
             if (existingUser != null && Boolean.FALSE.equals(existingUser.getStatus())) {
@@ -66,13 +65,14 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // 2. Đăng nhập thành công -> Thiết lập Session
+        // 1. Đăng nhập thành công -> Thiết lập Session
         HttpSession session = request.getSession();
         session.setAttribute("currentUser", user);
 
-        // 3. Xử lý logic riêng cho Candidate (nếu cần lấy thông tin profile)
+        // 2. Chuẩn hóa Role để xử lý logic
         String userRole = (user.getRole() != null) ? user.getRole().toLowerCase().trim() : "";
         
+        // 3. Xử lý logic riêng cho Candidate (Giữ nguyên yêu cầu của bạn)
         if ("candidate".equals(userRole)) {
             Candidate candidate = candidateDAO.findByUserId(user.getId());
             if (candidate != null) {
@@ -80,30 +80,36 @@ public class LoginServlet extends HttpServlet {
             }
         }
 
-        // 4. Chuyển hướng dựa trên Role
+        // 4. Lấy URL điều hướng dựa trên Role
         String redirectUrl = getDashboardByRole(userRole);
-        System.out.println("DEBUG: User " + user.getEmail() + " logged in with role: [" + userRole + "] -> Redirecting to: " + redirectUrl);
         
+        // Log Debug trên Console để kiểm tra đường dẫn thực tế
+        System.out.println("DEBUG: User [" + user.getEmail() + "] Role [" + userRole + "] -> Redirecting to: " + redirectUrl);
+        
+        // Chuyển hướng người dùng
         response.sendRedirect(request.getContextPath() + redirectUrl);
     }
 
+    /**
+     * Hàm điều hướng chính xác cho từng loại tài khoản
+     */
     private String getDashboardByRole(String role) {
-        if (role == null) return "/";
+        if (role == null) return "/home";
         
-        // Làm sạch dữ liệu role một lần nữa để tránh lỗi so sánh
         String cleanRole = role.toLowerCase().trim();
         
         switch (cleanRole) {
             case "admin":
+                // Đảm bảo AdminDashboardServlet map đúng @WebServlet("/admin/dashboard")
                 return "/admin/dashboard";
             case "recruiter":
                 return "/recruiter/dashboard";
             case "candidate":
-                // Nếu bạn muốn Candidate đăng nhập xong về trang chủ thay vì dashboard:
-                // return "/home"; 
+                // Nếu muốn Candidate vào dashboard riêng thì dùng /candidate/dashboard
+                // Nếu muốn Candidate ra trang chủ tìm việc ngay thì dùng /home
                 return "/candidate/dashboard";
             default:
-                return "/";
+                return "/home";
         }
     }
 

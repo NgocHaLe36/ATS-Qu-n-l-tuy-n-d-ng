@@ -111,6 +111,17 @@
         <div class="container-fluid p-4">
             <div class="admin-card mb-4">
                 <form action="${pageContext.request.contextPath}/recruiter/pipeline" method="get" class="row g-3">
+                    <%-- PHẦN THÊM MỚI: THANH TÌM KIẾM ĐA NĂNG --%>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Tìm kiếm ứng viên</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 bg-light text-muted"><i class="bi bi-search"></i></span>
+                            <%-- SỬA DÒNG NÀY: Thay param.query bằng query --%>
+							<input type="text" name="query" class="form-control border-0 bg-light rounded-end shadow-none" 
+							       placeholder="Tên, Email hoặc Vị trí ứng tuyển..." value="${query}">
+                        </div>
+                    </div>
+                    
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted text-uppercase">Trạng thái hồ sơ</label>
                         <select name="status" class="form-select border-0 bg-light rounded-3 shadow-none">
@@ -121,7 +132,8 @@
                             <option value="Rejected" ${status == 'Rejected' ? 'selected' : ''}>Rejected (Từ chối)</option>
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    
+                    <div class="col-md-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm py-2">
                             <i class="bi bi-funnel me-1"></i> Lọc hồ sơ
                         </button>
@@ -175,16 +187,16 @@
                                     <td>
                                         <c:choose>
                                             <c:when test="${app.status.equalsIgnoreCase('Interviewing') || app.status.equalsIgnoreCase('INTERVIEW')}">
-                                                <span class="badge-status bg-interviewing">INTERVIEWING</span>
+                                                <span class="badge-status bg-interviewing">PHỎNG VẤN</span>
                                             </c:when>
                                             <c:when test="${app.status.equalsIgnoreCase('Applied')}">
-                                                <span class="badge-status bg-applied">APPLIED</span>
+                                                <span class="badge-status bg-applied">ĐÃ NỘP</span>
                                             </c:when>
                                             <c:when test="${app.status.equalsIgnoreCase('Accepted')}">
-                                                <span class="badge-status bg-accepted">ACCEPTED</span>
+                                                <span class="badge-status bg-accepted">CHẤP NHẬN</span>
                                             </c:when>
                                             <c:when test="${app.status.equalsIgnoreCase('Rejected')}">
-                                                <span class="badge-status bg-rejected">REJECTED</span>
+                                                <span class="badge-status bg-rejected">TỪ CHỐI</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="badge-status bg-secondary">${app.status}</span>

@@ -250,4 +250,27 @@ public class ApplicationDAOImpl extends AbstractDAO<Application> implements Appl
             em.close();
         }
     }
+    
+    @Override
+    public List<Application> findByRecruiterId(Integer recruiterId) {
+        EntityManager em = getEntityManager();
+        try {
+            TypedQuery<Application> query = em.createQuery(
+                "SELECT a FROM Application a " +
+                "JOIN FETCH a.job j " +
+                "JOIN FETCH a.candidate c " +
+                "JOIN FETCH c.user u " + // Quan trọng: Fetch luôn User để lấy tên/email
+                "WHERE j.recruiter.id = :recruiterId " +
+                "ORDER BY a.applyDate DESC",
+                Application.class
+            );
+            query.setParameter("recruiterId", recruiterId);
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
 }
