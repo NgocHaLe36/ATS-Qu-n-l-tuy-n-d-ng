@@ -1,7 +1,6 @@
 package com.ats.servlet.admin.vip;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,7 +23,8 @@ public class CreateVipPlanServlet extends HttpServlet {
         if (getCurrentAdmin(request, response) == null) return;
 
         String name = trim(request.getParameter("name"));
-        BigDecimal price = parseDecimal(request.getParameter("price"));
+        // ĐÃ SỬA: Dùng parseInteger thay vì parseDecimal
+        Integer price = parseInteger(request.getParameter("price")); 
         Integer durationDays = parseInteger(request.getParameter("durationDays"));
         Integer jobLimit = parseInteger(request.getParameter("jobLimit"));
         String description = trim(request.getParameter("description"));
@@ -43,10 +43,6 @@ public class CreateVipPlanServlet extends HttpServlet {
 
         planDAO.save(plan);
         response.sendRedirect(request.getContextPath() + "/admin/vip/plans");
-    }
-
-    private BigDecimal parseDecimal(String value) {
-        try { return new BigDecimal(value); } catch (Exception e) { return null; }
     }
 
     private Integer parseInteger(String value) {

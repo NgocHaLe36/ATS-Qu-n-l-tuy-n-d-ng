@@ -1,3 +1,5 @@
+
+
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -189,7 +191,7 @@
 
             <div class="sidebar-menu-title">Tài chính & Phân tích</div>
             <li class="sidebar-item">
-                <a href="${pageContext.request.contextPath}/admin/vip-plans" class="sidebar-link">
+                <a href="${pageContext.request.contextPath}/admin/vip/plans" class="sidebar-link">
                     <i class="bi bi-gem"></i> Quản lý gói VIP
                 </a>
             </li>
@@ -228,7 +230,7 @@
             </div>
 
             <div class="d-flex align-items-center gap-3">
-                <a href="${pageContext.request.contextPath}/admin/create-staff" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                <a href="${pageContext.request.contextPath}/admin/staff/create" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
                     <i class="bi bi-person-plus-fill me-2"></i>Tạo tài khoản mới
                 </a>
 
@@ -381,4 +383,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
